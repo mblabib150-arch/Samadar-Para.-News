@@ -1,29 +1,307 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ছমদর পাড়া ব্রেকিং নিউজ</title>
-    <style>
-        body { font-family: Arial; margin: 0; background: #f0f0f0; }
-        .header { background: #c62828; color: white; padding: 20px; text-align: center; }
-        .news { background: white; margin: 15px; padding: 15px; border-radius: 8px; }
-        .news h3 { color: #c62828; }
-        .footer { text-align: center; padding: 10px; color: #666; font-size: 14px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ছমদর পাড়া ব্রেকিং নিউজ</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      font-family: 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+      padding: 10px;
+      min-height: 100vh;
+    }
+  .container { max-width: 900px; margin: 0 auto; }
+    h1 {
+      color: #C62828;
+      font-size: 42px;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      margin: 10px 0;
+    }
+  .marquee-box {
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 2px solid #E53935;
+      font-weight: bold;
+    }
+  .box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 15px 0;
+      font-size: 17px;
+      line-height: 1.8;
+      border: 3px solid #E53935;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+  .box h3 {
+      margin: 0 0 15px 0;
+      color: #E53935;
+      font-size: 22px;
+      border-bottom: 2px dashed #E53935;
+      padding-bottom: 8px;
+    }
+  .date-box span { font-weight: bold; color: #1565C0; }
+  .news-input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-family: 'SolaimanLipi', sans-serif;
+      margin-bottom: 10px;
+    }
+  .news-input:focus { border-color: #E53935; outline: none; }
+  .news-btn {
+      background: #E53935;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+  .news-btn:hover { background: #C62828; transform: translateY(-2px); }
+  .news-btn:disabled { background: #aaa; cursor: not-allowed; transform: none; }
+  .single-news {
+      border-bottom: 1px dashed #ccc;
+      padding: 15px 0;
+      position: relative;
+    }
+  .single-news:last-child { border-bottom: none; }
+  .news-text { margin-bottom: 8px; font-size: 17px; }
+  .news-time { font-size: 14px; color: #666; margin-top: 5px; }
+  .news-img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 2px solid #ddd;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  .delete-btn {
+      background: #555;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      float: right;
+    }
+  .delete-btn:hover { background: #333; }
+  .share-btn {
+      background: #1877F2;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 8px 5px 0 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.3s;
+    }
+  .share-btn:hover { transform: translateY(-2px); }
+  .whatsapp-btn { background: #25D366; }
+  .whatsapp-btn:hover { background: #1da851; }
+  .facebook-btn { background: #0866FF; }
+  .facebook-btn:hover { background: #0652cc; }
+    #uploadStatus { font-size: 14px; color: #2E7D32; margin-top: 5px; font-weight: bold; }
+  .note { font-size: 13px; color: #D32F2F; margin-top: 5px; }
+  .loading { text-align: center; color: #666; padding: 20px; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 </head>
 <body>
-    <div class="header">
-        <h1>ছমদর পাড়া ব্রেকিং নিউজ</h1>
-        <p>এলাকার সর্বশেষ খবর</p>
+  <div class="container">
+    <h1>📰 ছমদর পাড়া ব্রেকিং নিউজ</h1>
+
+    <div class="marquee-box">
+      <marquee behavior="scroll" direction="left" style="color:#2E7D32; font-size:18px;">
+        আচ্ছালামু আলাইকুম, <span style="color:#1565C0;">স্বাগতম ছমদর পাড়া বাসী</span> - সর্বশেষ সংবাদ জানতে স্ক্রল করুন
+      </marquee>
     </div>
-    <div class="news">
-        <h3>ওয়েবসাইট চালু হয়েছে</h3>
-        <p>২৩ এপ্রিল, ২০২৬</p>
-        <p>আমাদের নিউজ পোর্টালে আপনাকে স্বাগতম। শীঘ্রই নতুন খবর যোগ করা হবে।</p>
+
+    <div class="box date-box">
+      <h3>📅 আজকের তথ্য</h3>
+      বার: <span id="dayName"></span><br>
+      সময়: <span id="time"></span><br>
+      ইংরেজি তারিখ: <span id="engDate"></span><br>
+      বাংলা তারিখ: <span id="bnDate"></span><br>
+      আরবি হিজরি তারিখ: <span id="arDate"></span><br>
+      সূর্যোদয়: <span>5:31 AM</span><br>
+      সূর্যাস্ত: <span>6:11 PM</span><br>
+      আজকের আবহাওয়া: <span>32°C, কুয়াশাচ্ছন্ন। সর্বোচ্চ 32°C, সর্বনিম্ন 24°C</span>
     </div>
-    <div class="footer">
-        © 2026 ছমদর পাড়া ব্রেকিং নিউজ
+
+    <div class="box">
+      <h3>✍️ সংবাদ যোগ করুন</h3>
+      <textarea id="newsText" class="news-input" rows="3" placeholder="এখানে সংবাদ লিখুন..."></textarea>
+      <label style="font-size:15px; display:block; margin-bottom:5px;">ছবি সিলেক্ট করুন - ঐচ্ছিক:</label>
+      <input type="file" id="imageFile" class="news-input" accept="image/*">
+      <div class="note">নোট: যেকোনো সাইজের ছবি দিতে পারবেন।</div>
+      <div id="uploadStatus"></div>
+      <button class="news-btn" id="postBtn" onclick="addNews()">📝 পোস্ট করুন</button>
     </div>
+
+    <div class="box">
+      <h3>📢 সর্বশেষ সংবাদ</h3>
+      <div id="newsList" class="loading">লোড হচ্ছে...</div>
+    </div>
+  </div>
+
+  <script>
+    // আপনার Firebase তথ্য বসান
+    const YOUR_DATABASE_URL = "https://chomdor-news-default-rtdb.firebaseio.com";
+    const YOUR_STORAGE_BUCKET = "chomdor-news.appspot.com";
+
+    firebase.initializeApp({
+      databaseURL: YOUR_DATABASE_URL,
+      storageBucket: YOUR_STORAGE_BUCKET
+    });
+    const db = firebase.database();
+    const storage = firebase.storage();
+    const newsRef = db.ref('news');
+
+    function updateDateTime() {
+      const today = new Date();
+      const days = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+      document.getElementById('dayName').innerText = days[today.getDay()];
+      document.getElementById('time').innerText = today.toLocaleTimeString('bn-BD', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+      document.getElementById('engDate').innerText = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      function getBanglaDate(date) {
+        const bnMonths = ['বৈশাখ','জ্যৈষ্ঠ','আষাঢ়','শ্রাবণ','ভাদ্র','আশ্বিন','কার্তিক','অগ্রহায়ণ','পৌষ','মাঘ','ফাল্গুন','চৈত্র'];
+        const bnYear = date.getFullYear() - 593;
+        const startDate = new Date(date.getFullYear(), 3, 14);
+        if (date >= startDate) {
+          const diffTime = date - startDate;
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          return `${diffDays} ${bnMonths[0]} ${bnYear}`;
+        } else {
+          const prevYear = bnYear - 1;
+          const march14 = new Date(date.getFullYear(), 2, 14);
+          const diffTime = date - march14;
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          return `${diffDays} ${bnMonths[11]} ${prevYear}`;
+        }
+      }
+      document.getElementById('bnDate').innerText = getBanglaDate(today);
+
+      const hijriDate = new Date(today);
+      hijriDate.setDate(hijriDate.getDate() + 1);
+      const hijri = new Intl.DateTimeFormat('en-u-ca-islamic', { day: 'numeric', month: 'numeric', year: 'numeric' }).formatToParts(hijriDate);
+      const hDay = hijri.find(part => part.type === 'day').value;
+      const hMonth = hijri.find(part => part.type === 'month').value;
+      const hYear = hijri.find(part => part.type === 'year').value;
+      document.getElementById('arDate').innerText = `${hDay}/${hMonth}/${hYear}`;
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+
+    newsRef.on('value', (snapshot) => {
+      const newsList = document.getElementById('newsList');
+      newsList.innerHTML = '';
+      const data = snapshot.val();
+      if (!data) {
+        newsList.innerHTML = '<div class="loading">কোনো সংবাদ নেই। প্রথম সংবাদটি আপনি লিখুন।</div>';
+        return;
+      }
+      const allNews = Object.entries(data).reverse();
+      allNews.forEach(([key, item]) => {
+        const shareText = `ছমদর পাড়া ব্রেকিং নিউজ:\n\n${item.text}\n\nপ্রকাশ: ${item.time}\n\nবিস্তারিত: ${window.location.href}`;
+        const encodedText = encodeURIComponent(shareText);
+        const fbUrl = encodeURIComponent(window.location.href);
+        let imgTag = item.imageUrl? `<img src="${item.imageUrl}" class="news-img" loading="lazy">` : '';
+        newsList.innerHTML += `
+          <div class="single-news">
+            <button class="delete-btn" onclick="deleteNews('${key}')">🗑️ ডিলিট</button>
+            <div class="news-text">${item.text}</div>
+            ${imgTag}
+            <div class="news-time">⏰ প্রকাশ: ${item.time}</div>
+            <div>
+              <button class="share-btn" onclick="shareNews('${encodedText}')">📤 শেয়ার</button>
+              <button class="share-btn whatsapp-btn" onclick="window.open('https://wa.me/?text=${encodedText}')">💬 WhatsApp</button>
+              <button class="share-btn facebook-btn" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${fbUrl}')">📘 Facebook</button>
+            </div>
+          </div>
+        `;
+      });
+    });
+
+    function shareNews(encodedText) {
+      const text = decodeURIComponent(encodedText);
+      if (navigator.share) {
+        navigator.share({
+          title: 'ছমদর পাড়া ব্রেকিং নিউজ',
+          text: text
+        }).catch(err => console.log('Share cancelled'));
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('✅ সংবাদ কপি হয়েছে দুলাভাই। এখন ফেসবুক/হোয়াটসঅ্যাপে পেস্ট করেন।');
+        });
+      }
+    }
+
+    async function addNews() {
+      const textBox = document.getElementById('newsText');
+      const newsText = textBox.value.trim();
+      const imageFile = document.getElementById('imageFile').files[0];
+      if(newsText === '') {
+        alert('⚠️ সংবাদ লিখুন দুলাভাই');
+        return;
+      }
+
+      const postBtn = document.getElementById('postBtn');
+      const statusDiv = document.getElementById('uploadStatus');
+      postBtn.disabled = true;
+
+      let imageUrl = '';
+      if(imageFile) {
+        statusDiv.innerText = '⏳ ছবি আপলোড হচ্ছে...';
+        try {
+          const fileName = `news_${Date.now()}_${imageFile.name}`;
+          const storageRef = storage.ref('images/' + fileName);
+          const snapshot = await storageRef.put(imageFile);
+          imageUrl = await snapshot.ref.getDownloadURL();
+          statusDiv.innerText = '✅ ছবি আপলোড সফল!';
+        } catch (e) {
+          alert('❌ ছবি আপলোড হয় নাই। Firebase Storage চালু করছেন কিনা চেক করেন দুলাভাই।');
+          postBtn.disabled = false;
+          statusDiv.innerText = '';
+          return;
+        }
+      }
+
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('bn-BD', { hour: 'numeric', minute: '2-digit', hour12: true }) + ', ' + now.toLocaleDateString('bn-BD');
+      await newsRef.push({ text: newsText, time: timeString, imageUrl: imageUrl });
+
+      document.getElementById('newsText').value = '';
+      document.getElementById('imageFile').value = '';
+      statusDiv.innerText = '';
+      postBtn.disabled = false;
+      alert('✅ সংবাদ পোস্ট হয়েছে দুলাভাই');
+    }
+
+    function deleteNews(key) {
+      if(confirm('আপনি কি এই সংবাদ ডিলিট করতে চান?')) {
+        db.ref('news/' + key).remove();
+      }
+    }
+  </script>
+
 </body>
 </html>
+
